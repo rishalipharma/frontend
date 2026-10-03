@@ -215,3 +215,5 @@ jobs:
           git diff --staged --quiet && echo "Already up to date" && exit 0
           git commit -m "ci(dev): update pharma-ui → ${IMAGE_TAG}"
           git push
+
+#Test comment added
