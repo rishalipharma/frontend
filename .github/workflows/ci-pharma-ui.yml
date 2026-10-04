@@ -157,6 +157,51 @@ jobs:
           echo "Event      = $GITHUB_EVENT_NAME"
           echo "SHA        = $GITHUB_SHA"
 
+      - name: Debug actual GitHub OIDC claims
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import json
+          import urllib.request
+          import base64
+
+          url = os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"]
+          url += "&audience=sts.amazonaws.com"
+
+          request = urllib.request.Request(
+              url,
+              headers={
+                  "Authorization": "Bearer " +
+                  os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]
+              }
+          )
+
+          response = urllib.request.urlopen(request)
+          token = json.load(response)["value"]
+
+          # Decode JWT payload only.
+          # DO NOT print the actual token.
+          payload = token.split(".")[1]
+          payload += "=" * (-len(payload) % 4)
+
+          claims = json.loads(
+              base64.urlsafe_b64decode(payload)
+          )
+
+          safe_claims = {
+              "iss": claims.get("iss"),
+              "aud": claims.get("aud"),
+              "sub": claims.get("sub"),
+              "repository": claims.get("repository"),
+              "repository_owner": claims.get("repository_owner"),
+              "ref": claims.get("ref"),
+              "event_name": claims.get("event_name")
+          }
+
+          print(json.dumps(safe_claims, indent=2))
+          PY
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v5
         with:
