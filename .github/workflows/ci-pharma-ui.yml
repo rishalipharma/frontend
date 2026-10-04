@@ -216,4 +216,3 @@ jobs:
           git commit -m "ci(dev): update pharma-ui → ${IMAGE_TAG}"
           git push
 
-#Test comment added here
